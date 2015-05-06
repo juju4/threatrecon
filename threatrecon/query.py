@@ -14,18 +14,45 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import json
-import urllib
-import urllib2
-from sslv3 import HTTPSHandlerV3
+import requests
+import requests_cache
+import logging
+logger = logging.getLogger(__name__)
 from datetime import datetime
 from dateutil import parser
 from api import API_FIELDS, APIError
 
-
 ###########RAW QUERY############################################
 ################################################################
 
-def raw_query_threat_recon(indicator, api_key):
+def raw_query_threat_recon_json(indicator, api_key,
+        enable_cache=False, cache_expire_after=604800, tr_cache_file='/tmp/threat_recon.cache'):
+    """
+    Uses an indicator and the api key to query the threat recon
+    database. Returns Raw json.
+    """
+    # NOTE: results will have mixed-case keys. In general, these
+    # should not be used directly - the TRIndicator objects use
+    # lower-case attributes (and generate dicts with lower-case keys).
+
+    try:
+        params = {'api_key': api_key, 'indicator': indicator}
+	logger.debug('params = ' + str(params))
+        f = requests.post("https://api.threatrecon.co/api/v1/search", data=params)
+	logger.debug('f = ' + str(f))
+        if enable_cache is True:
+    	    requests_cache.install_cache()
+            requests_cache.install_cache(tr_cache_file, backend='sqlite', expire_after=cache_expire_after)
+	if f.status_code == 200:
+            return f.content
+        else:
+            logger.error("Invalid status code for " + indicator + ": " + f.status_code)
+    except:
+        logger.error("Error for " + indicator + ": " + str(f))
+        raise APIError(f)
+
+def raw_query_threat_recon(indicator, api_key,
+        enable_cache=False, cache_expire_after=604800, tr_cache_file='/tmp/threat_recon.cache'):
     """
     Uses an indicator and the api key to query the threat recon
     database. Returns a list of python dicts corresponding to
@@ -39,10 +66,8 @@ def raw_query_threat_recon(indicator, api_key):
     # should not be used directly - the TRIndicator objects use
     # lower-case attributes (and generate dicts with lower-case keys).
 
-    params = urllib.urlencode({'api_key': api_key, 'indicator': indicator})
-    urllib2.install_opener(urllib2.build_opener(HTTPSHandlerV3()))
-
-    f = urllib2.urlopen("https://api.threatrecon.co/api/v1/search", params)
+    f = raw_query_threat_recon_json(indicator, api_key,
+        enable_cache=False, cache_expire_after=604800, tr_cache_file='/tmp/threat_recon.cache')
     data = json.load(f)
     response = data.get("ResponseCode", -99)
     if response < 0:
@@ -77,7 +102,8 @@ def query_threat_recon(indicator, api_key):
 ###########ATTRIBUTION QUERY####################################
 ################################################################
 
-def raw_query_threat_recon_attribution(indicator, api_key):
+def raw_query_threat_recon_attribution(indicator, api_key,
+        enable_cache=False, cache_expire_after=604800, tr_cache_file='/tmp/threat_recon.cache'):
     """
     Uses an indicator and the api key to query the threat recon
     database. Returns a list of python dicts corresponding to
@@ -91,10 +117,11 @@ def raw_query_threat_recon_attribution(indicator, api_key):
     # should not be used directly - the TRIndicator objects use
     # lower-case attributes (and generate dicts with lower-case keys).
 
-    params = urllib.urlencode({'api_key': api_key, 'attribution': indicator})
-    urllib2.install_opener(urllib2.build_opener(HTTPSHandlerV3()))
-
-    f = urllib2.urlopen("https://api.threatrecon.co/api/v1/search/attribution", params)
+    params = {'api_key': api_key, 'attribution': indicator}
+    f = requests.get("https://api.threatrecon.co/api/v1/search/attribution", params=params)
+    if enable_cache is True:
+    	requests_cache.install_cache()
+        requests_cache.install_cache(tr_cache_file, backend='sqlite', expire_after=cache_expire_after)
     data = json.load(f)
     response = data.get("ResponseCode", -99)
     if response < 0:
@@ -129,7 +156,8 @@ def query_threat_recon_attribution(indicator, api_key):
 ###########REFERENCE QUERY####################################
 ################################################################
 
-def raw_query_threat_recon_reference(indicator, api_key):
+def raw_query_threat_recon_reference(indicator, api_key,
+        enable_cache=False, cache_expire_after=604800, tr_cache_file='/tmp/threat_recon.cache'):
     """
     Uses an indicator and the api key to query the threat recon
     database. Returns a list of python dicts corresponding to
@@ -143,10 +171,11 @@ def raw_query_threat_recon_reference(indicator, api_key):
     # should not be used directly - the TRIndicator objects use
     # lower-case attributes (and generate dicts with lower-case keys).
 
-    params = urllib.urlencode({'api_key': api_key, 'reference': indicator})
-    urllib2.install_opener(urllib2.build_opener(HTTPSHandlerV3()))
-
-    f = urllib2.urlopen("https://api.threatrecon.co/api/v1/search/reference", params)
+    params = {'api_key': api_key, 'reference': indicator}
+    f = requests.get("https://api.threatrecon.co/api/v1/search/reference", params=params)
+    if enable_cache is True:
+    	requests_cache.install_cache()
+        requests_cache.install_cache(tr_cache_file, backend='sqlite', expire_after=cache_expire_after)
     data = json.load(f)
     response = data.get("ResponseCode", -99)
     if response < 0:
@@ -181,7 +210,8 @@ def query_threat_recon_reference(indicator, api_key):
 ###########COMMENT QUERY########################################
 ################################################################
 
-def raw_query_threat_recon_comment(indicator, api_key):
+def raw_query_threat_recon_comment(indicator, api_key,
+        enable_cache=False, cache_expire_after=604800, tr_cache_file='/tmp/threat_recon.cache'):
     """
     Uses an indicator and the api key to query the threat recon
     database. Returns a list of python dicts corresponding to
@@ -195,10 +225,11 @@ def raw_query_threat_recon_comment(indicator, api_key):
     # should not be used directly - the TRIndicator objects use
     # lower-case attributes (and generate dicts with lower-case keys).
 
-    params = urllib.urlencode({'api_key': api_key, 'comment': indicator})
-    urllib2.install_opener(urllib2.build_opener(HTTPSHandlerV3()))
-
-    f = urllib2.urlopen("https://api.threatrecon.co/api/v1/search/comment", params)
+    params = {'api_key': api_key, 'comment': indicator}
+    f = requests.get("https://api.threatrecon.co/api/v1/search/comment", params=params)
+    if enable_cache is True:
+    	requests_cache.install_cache()
+        requests_cache.install_cache(tr_cache_file, backend='sqlite', expire_after=cache_expire_after)
     data = json.load(f)
     response = data.get("ResponseCode", -99)
     if response < 0:
