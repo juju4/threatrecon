@@ -37,12 +37,16 @@ def raw_query_threat_recon_json(indicator, api_key,
 
     try:
         params = {'api_key': api_key, 'indicator': indicator}
+        if enable_cache is True:
+    	    requests_cache.install_cache()
+            requests_cache.install_cache(tr_cache_file, backend='sqlite', expire_after=cache_expire_after, allowable_methods=('GET', 'POST'))
 	logger.debug('params = ' + str(params))
         f = requests.post("https://api.threatrecon.co/api/v1/search", data=params)
 	logger.debug('f = ' + str(f))
-        if enable_cache is True:
-    	    requests_cache.install_cache()
-            requests_cache.install_cache(tr_cache_file, backend='sqlite', expire_after=cache_expire_after)
+	logger.debug(f.headers)
+	## FIXME! need to delete from cache when responseCode is invalid
+        if enable_cache is True and f.from_cache is True:
+            logger.info("from cache indicator=[%s]", indicator)
 	if f.status_code == 200:
             return f.content
         else:
