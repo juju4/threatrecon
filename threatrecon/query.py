@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 from datetime import datetime
 from dateutil import parser
 from api import API_FIELDS, APIError
+tr_last_cache_call = None
 
 ###########RAW QUERY############################################
 ################################################################
@@ -35,6 +36,7 @@ def raw_query_threat_recon_json(indicator, api_key,
     # should not be used directly - the TRIndicator objects use
     # lower-case attributes (and generate dicts with lower-case keys).
 
+    global tr_last_cache_call
     try:
         params = {'api_key': api_key, 'indicator': indicator}
         if enable_cache is True:
@@ -46,6 +48,7 @@ def raw_query_threat_recon_json(indicator, api_key,
 	logger.debug(f.headers)
 	## FIXME! need to delete from cache when responseCode is invalid
         if enable_cache is True and f.from_cache is True:
+	    tr_last_cache_call = indicator
             logger.info("from cache indicator=[%s]", indicator)
 	if f.status_code == 200:
             return f.content
