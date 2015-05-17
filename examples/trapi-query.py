@@ -25,7 +25,7 @@ logging.captureWarnings(True)
 w_network = 1
 THREATRECON_LIMIT = 0
 ## Public API: 4 req/min
-THREATRECON_KEY = '344eabf20583a2e0bde6e0cde7ee8feb'
+THREATRECON_KEY = ''
 TR_COUNT = 0
 
 ## if -2 = Exhausted Plan Limit
@@ -55,7 +55,6 @@ def main():
             logger.debug("input as stdin")
             for line in sys.stdin:
                 ## every 4req, sleep 1min to respect limitation
-## FIXME! don't count in sleep limit the one pulled from cache...
                 if TR_COUNT != 0 and TR_COUNT % 4 == 0:
                     logger.debug("sleeping a bit...")
                     time.sleep(60)

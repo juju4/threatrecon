@@ -9,5 +9,7 @@ setup(
     description='Python API module for Wapack Labs ThreatRecon service.',
     install_requires=[
         "python-dateutil >= 2.2",
+	"requests",
+	"requests-cache",
     ],
 )
